@@ -2,6 +2,7 @@ extends Node2D
 
 const TILE_SIZE := 32
 const MAP_OFFSET := Vector2i(0, 0)
+const VISION_RADIUS := 5
 
 # # is a stone wall, . is walkable floor, > is the stairs to the next floor.
 const DUNGEON := [
@@ -24,12 +25,14 @@ const DUNGEON := [
 	"##############################",
 ]
 
-const TORCHES := [Vector2i(3, 3), Vector2i(13, 3), Vector2i(21, 5), Vector2i(6, 11), Vector2i(24, 13)]
 const HERO_CELL := Vector2i(3, 13)
 
 var hero_cell: Vector2i = HERO_CELL
+var visible_cells := {}
+var explored_cells := {}
 
 func _ready() -> void:
+	_update_visibility()
 	queue_redraw()
 
 
@@ -60,7 +63,41 @@ func _try_move(direction: Vector2i) -> void:
 		return
 
 	hero_cell = next_cell
+	_update_visibility()
 	queue_redraw()
+
+
+func _update_visibility() -> void:
+	visible_cells.clear()
+	for y in DUNGEON.size():
+		for x in DUNGEON[y].length():
+			var cell := Vector2i(x, y)
+			if cell.distance_to(hero_cell) <= VISION_RADIUS and _has_line_of_sight(hero_cell, cell):
+				visible_cells[cell] = true
+				explored_cells[cell] = true
+
+
+func _has_line_of_sight(from_cell: Vector2i, to_cell: Vector2i) -> bool:
+	# Bresenham's line algorithm: a wall can be seen, but blocks cells behind it.
+	var current := from_cell
+	var delta_x: int = abs(to_cell.x - from_cell.x)
+	var delta_y: int = -abs(to_cell.y - from_cell.y)
+	var step_x: int = 1 if from_cell.x < to_cell.x else -1
+	var step_y: int = 1 if from_cell.y < to_cell.y else -1
+	var error: int = delta_x + delta_y
+
+	while current != to_cell:
+		var doubled_error: int = 2 * error
+		if doubled_error >= delta_y:
+			error += delta_y
+			current.x += step_x
+		if doubled_error <= delta_x:
+			error += delta_x
+			current.y += step_y
+		if current != to_cell and str(DUNGEON[current.y][current.x]) == "#":
+			return false
+
+	return true
 
 
 func _draw() -> void:
@@ -72,15 +109,17 @@ func _draw() -> void:
 			var cell := Vector2i(x, y)
 			var tile: String = str(DUNGEON[y][x])
 			var rect := Rect2(Vector2(MAP_OFFSET + cell * TILE_SIZE), Vector2(TILE_SIZE, TILE_SIZE))
+			if not explored_cells.has(cell):
+				draw_rect(rect, Color("080b12"))
+				continue
 			if tile == "#":
 				_draw_wall(rect, cell)
 			else:
 				_draw_floor(rect, cell)
 				if tile == ">":
 					_draw_stairs(rect)
-
-	for torch_cell in TORCHES:
-		_draw_torch(torch_cell)
+			if not visible_cells.has(cell):
+				draw_rect(rect, Color(0.01, 0.02, 0.04, 0.62))
 
 	_draw_hero(hero_cell)
 	_draw_hud()
@@ -106,15 +145,6 @@ func _draw_wall(rect: Rect2, cell: Vector2i) -> void:
 		draw_line(rect.position + Vector2(9, 14), rect.position + Vector2(9, 27), Color("46525b"), 1.0)
 
 
-func _draw_torch(cell: Vector2i) -> void:
-	var center := Vector2(MAP_OFFSET + cell * TILE_SIZE) + Vector2(TILE_SIZE * 0.5, TILE_SIZE * 0.5)
-	draw_circle(center, 43.0, Color(0.95, 0.38, 0.08, 0.035))
-	draw_circle(center, 28.0, Color(1.0, 0.52, 0.12, 0.08))
-	draw_rect(Rect2(center + Vector2(-2, -9), Vector2(4, 12)), Color("6d3b20"))
-	draw_circle(center + Vector2(0, -10), 5.0, Color("ffb13b"))
-	draw_circle(center + Vector2(0, -11), 2.5, Color("fff1ae"))
-
-
 func _draw_stairs(rect: Rect2) -> void:
 	for step in 4:
 		var width := 22 - step * 4
@@ -137,5 +167,5 @@ func _draw_hud() -> void:
 	draw_rect(Rect2(0, 0, 960, 36), Color("0d1219"))
 	draw_line(Vector2(0, 35), Vector2(960, 35), Color("53616a"), 1.0)
 	draw_string(font, Vector2(18, 24), "THE FORSAKEN DEPTHS  •  FLOOR 1", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("e2d8b5"))
-	draw_string(font, Vector2(420, 24), "WASD / ARROWS: MOVE", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("8fa1a5"))
+	draw_string(font, Vector2(404, 24), "VISION: %s  •  WASD / ARROWS: MOVE" % VISION_RADIUS, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("8fa1a5"))
 	draw_string(font, Vector2(838, 24), "HP 20 / 20", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("dc6960"))

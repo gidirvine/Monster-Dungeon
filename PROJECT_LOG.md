@@ -37,3 +37,9 @@ Use this file as a concise handoff record when moving development between machin
 - Changed: `scripts/dungeon_level.gd`
 - Summary: The hero now moves one dungeon tile at a time with either the arrow keys or WASD. Movement is constrained by the hand-authored map, preventing the player from walking through stone walls or outside the level.
 - Next: Add mobile touch controls and a camera once the movement feel is confirmed.
+
+## 2026-09-19 — Added persistent field-of-view lighting
+
+- Changed: `scripts/dungeon_level.gd`
+- Summary: Replaced static torches and full-map illumination with a five-tile vision radius centered on the hero. Walls block line of sight; cells outside the current view stay concealed until discovered, then remain visible as dimly remembered terrain.
+- Next: Tune the vision radius and add mobile touch controls after playtesting the exploration feel.
