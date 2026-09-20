@@ -11,7 +11,7 @@ const MIN_ROOM_SIZE := Vector2i(4, 4)
 const MAX_ROOM_SIZE := Vector2i(8, 7)
 const MIN_ROOMS := 9
 const MAX_ROOMS := 14
-const FLOOR_MACRO: Texture2D = preload("res://assets/tiles/terrain/floor_macro_32_v2.png")
+const FLOOR_ATLAS: Texture2D = preload("res://assets/tiles/runoff-floor-v1/floor_atlas_32.png")
 const WALL_ATLAS: Texture2D = preload("res://assets/tiles/terrain/wall_tiles_32_v2.png")
 
 var dungeon: Array[PackedStringArray] = []
@@ -21,10 +21,12 @@ var visible_cells := {}
 var explored_cells := {}
 var map_width := MIN_MAP_WIDTH
 var map_height := MIN_MAP_HEIGHT
+var floor_style_seed: int = 0
 
 @onready var camera: Camera2D = $Camera2D
 
 func _ready() -> void:
+	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	_generate_dungeon()
 	_update_visibility()
 	_update_camera()
@@ -56,6 +58,8 @@ func _unhandled_input(event: InputEvent) -> void:
 func _generate_dungeon() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
+	floor_style_seed = rng.randi()
+	explored_cells.clear()
 	map_width = rng.randi_range(MIN_MAP_WIDTH, MAX_MAP_WIDTH)
 	map_height = rng.randi_range(MIN_MAP_HEIGHT, MAX_MAP_HEIGHT)
 	dungeon.clear()
@@ -227,10 +231,17 @@ func _draw() -> void:
 
 
 func _draw_floor(rect: Rect2, cell: Vector2i) -> void:
-	# Neighboring cells sample contiguous pieces of one floor surface instead of unrelated tiles.
-	var macro_cell := Vector2i(cell.x % 4, cell.y % 4)
-	var source := Rect2(Vector2(macro_cell * TILE_SIZE), Vector2(TILE_SIZE, TILE_SIZE))
-	draw_texture_rect_region(FLOOR_MACRO, rect, source)
+	# Stable per floor and cell: redrawing or revisiting never changes the stones.
+	var roll: int = hash(Vector3i(cell.x, cell.y, floor_style_seed)) % 100
+	var atlas_cell := Vector2i.ZERO
+	if roll >= 94:
+		atlas_cell = Vector2i(1, 1) # Damp: 6%.
+	elif roll >= 88:
+		atlas_cell = Vector2i(0, 1) # Mossy: 6%.
+	elif roll >= 80:
+		atlas_cell = Vector2i(1, 0) # Cracked: 8%; remaining 80% plain.
+	var source := Rect2(Vector2(atlas_cell * TILE_SIZE), Vector2(TILE_SIZE, TILE_SIZE))
+	draw_texture_rect_region(FLOOR_ATLAS, rect, source)
 
 
 func _draw_wall(rect: Rect2, cell: Vector2i) -> void:

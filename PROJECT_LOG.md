@@ -1,5 +1,11 @@
 # Project Change Log
 
+## 2026-09-20 — Integrated supplied Runoff Tunnels floor art
+
+- Changed: `scripts/dungeon_level.gd`, `assets/tiles/terrain/dungeon_terrain_tileset.tres`, `assets/tiles/runoff-floor-v1/`.
+- Summary: Uses the supplied 64×64 atlas at native 32×32 tile size with nearest filtering. Floors use approximately 80% plain stone, 8% cracked, 6% mossy, and 6% damp. Variation stays fixed while exploring and changes with each generated floor. Updated the reusable TileSet to its four valid floor cells. Reset exploration on regeneration so new floors do not inherit old discoveries.
+- Verification: Godot 4.7.2 imported the assets and ran a three-frame headless gameplay smoke check without script errors. Sandbox-related certificate/editor-settings warnings remain.
+
 Use this file as a concise handoff record when moving development between machines. Add an entry for every project change, including file additions, edits, removals, configuration changes, and important decisions.
 
 ## Entry format
