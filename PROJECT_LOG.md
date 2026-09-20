@@ -67,3 +67,9 @@ Use this file as a concise handoff record when moving development between machin
 - Changed: `assets/tiles/terrain/floor_tiles_32_v1.png`, `assets/tiles/terrain/wall_tiles_32_v1.png`, `assets/tiles/terrain/dungeon_terrain_tileset.tres`, `assets/tiles/terrain/*.png.import`, `scripts/dungeon_level.gd`
 - Summary: Normalized the terrain references into two 128×128 four-by-four atlases with exact 32×32 cells, created a Godot TileSet resource containing both sets, and updated the procedural dungeon renderer to draw the terrain atlas art instead of the original code-drawn stone tiles. Wall variants now respond to neighboring floor cells so caps and corners form coherent dungeon boundaries.
 - Next: Refine the atlas variants and use the TileSet directly in a TileMapLayer as terrain rules expand.
+
+## 2026-09-19 — Replaced disconnected wall graphics
+
+- Changed: `assets/tiles/terrain/wall_atlas_v2.png`, `assets/tiles/terrain/wall_tiles_32_v2.png`, `assets/tiles/terrain/dungeon_terrain_tileset.tres`, `scripts/dungeon_level.gd`
+- Summary: Replaced the façade-like wall atlas that produced black gaps and repeated pillars with a full-masonry atlas. The renderer now uses only solid stone-wall variants, so adjacent wall cells join into a continuous, readable dungeon boundary.
+- Next: Playtest wall readability against floor visibility and tune contrast if needed.
