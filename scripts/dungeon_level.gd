@@ -55,9 +55,12 @@ func _unhandled_input(event: InputEvent) -> void:
 			queue_redraw()
 
 
-func _generate_dungeon() -> void:
+func _generate_dungeon(test_seed: int = -1) -> void:
 	var rng := RandomNumberGenerator.new()
-	rng.randomize()
+	if test_seed >= 0:
+		rng.seed = test_seed
+	else:
+		rng.randomize()
 	floor_style_seed = rng.randi()
 	explored_cells.clear()
 	map_width = rng.randi_range(MIN_MAP_WIDTH, MAX_MAP_WIDTH)

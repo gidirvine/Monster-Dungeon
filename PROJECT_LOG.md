@@ -1,5 +1,11 @@
 # Project Change Log
 
+## 2026-09-20 — Added repeatable visual playtests
+
+- Changed: `tools/playtest.gd`, `tools/README.md`, `scripts/dungeon_level.gd`, `.gitignore`.
+- Summary: Added optional seeded generation and a test runner that traverses the floor, checks movement/wall blocking and exploration persistence/reset, and saves viewport screenshots plus a JSON report. Normal play remains randomized. Local test output is excluded from Git.
+- Verification: Headless and graphical Godot runs passed for seed 20260920: 37 movement steps, 41 blocked-wall checks, four graphical screenshots. Inspected the exploration screenshot. Physical keyboard/touch input is not exercised.
+
 ## 2026-09-20 — Integrated supplied Runoff Tunnels floor art
 
 - Changed: `scripts/dungeon_level.gd`, `assets/tiles/terrain/dungeon_terrain_tileset.tres`, `assets/tiles/runoff-floor-v1/`.
