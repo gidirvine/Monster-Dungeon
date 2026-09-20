@@ -73,3 +73,9 @@ Use this file as a concise handoff record when moving development between machin
 - Changed: `assets/tiles/terrain/wall_atlas_v2.png`, `assets/tiles/terrain/wall_tiles_32_v2.png`, `assets/tiles/terrain/dungeon_terrain_tileset.tres`, `scripts/dungeon_level.gd`
 - Summary: Replaced the façade-like wall atlas that produced black gaps and repeated pillars with a full-masonry atlas. The renderer now uses only solid stone-wall variants, so adjacent wall cells join into a continuous, readable dungeon boundary.
 - Next: Playtest wall readability against floor visibility and tune contrast if needed.
+
+## 2026-09-19 — Added room-edge wall behavior
+
+- Changed: `scripts/dungeon_level.gd`
+- Summary: Changed wall rendering to match the room-edge behavior in the provided dungeon reference: only wall cells immediately bordering walkable floor are drawn as masonry, with cool stone caps facing the floor. Interior rock remains black while continuing to block player movement and line of sight.
+- Next: Playtest the new perimeter-wall readability and adjust cap brightness if necessary.

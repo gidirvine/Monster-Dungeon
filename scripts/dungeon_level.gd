@@ -212,7 +212,10 @@ func _draw() -> void:
 				draw_rect(rect, Color("080b12"))
 				continue
 			if tile == "#":
-				_draw_wall(rect, cell)
+				if _is_boundary_wall(cell):
+					_draw_wall(rect, cell)
+				else:
+					draw_rect(rect, Color("080b12"))
 			else:
 				_draw_floor(rect, cell)
 				if tile == ">":
@@ -228,8 +231,34 @@ func _draw_floor(rect: Rect2, cell: Vector2i) -> void:
 
 
 func _draw_wall(rect: Rect2, cell: Vector2i) -> void:
-	# All v2 variants are full masonry tiles, so adjoining wall cells form one solid mass.
+	# Wall texture exists only on the boundary of explored space; deeper rock stays black.
 	_draw_atlas_tile(WALL_ATLAS, rect, (cell.x * 5 + cell.y * 3) % 16)
+	var cap_color := Color("9aacad")
+	var shadow_color := Color("35474f")
+	if _is_walkable(cell + Vector2i.UP):
+		draw_rect(Rect2(rect.position, Vector2(TILE_SIZE, 3)), cap_color)
+		draw_line(rect.position + Vector2(0, 3), rect.position + Vector2(TILE_SIZE, 3), shadow_color, 1.0)
+	if _is_walkable(cell + Vector2i.DOWN):
+		var bottom := rect.position + Vector2(0, TILE_SIZE - 3)
+		draw_rect(Rect2(bottom, Vector2(TILE_SIZE, 3)), cap_color)
+		draw_line(bottom - Vector2(0, 1), bottom + Vector2(TILE_SIZE, -1), shadow_color, 1.0)
+	if _is_walkable(cell + Vector2i.LEFT):
+		draw_rect(Rect2(rect.position, Vector2(3, TILE_SIZE)), cap_color)
+		draw_line(rect.position + Vector2(3, 0), rect.position + Vector2(3, TILE_SIZE), shadow_color, 1.0)
+	if _is_walkable(cell + Vector2i.RIGHT):
+		var right := rect.position + Vector2(TILE_SIZE - 3, 0)
+		draw_rect(Rect2(right, Vector2(3, TILE_SIZE)), cap_color)
+		draw_line(right - Vector2(1, 0), right + Vector2(-1, TILE_SIZE), shadow_color, 1.0)
+
+
+func _is_boundary_wall(cell: Vector2i) -> bool:
+	return _is_walkable(cell + Vector2i.UP) or _is_walkable(cell + Vector2i.DOWN) or _is_walkable(cell + Vector2i.LEFT) or _is_walkable(cell + Vector2i.RIGHT)
+
+
+func _is_walkable(cell: Vector2i) -> bool:
+	if cell.x < 0 or cell.x >= map_width or cell.y < 0 or cell.y >= map_height:
+		return false
+	return _get_tile(cell) != "#"
 
 
 func _draw_atlas_tile(atlas: Texture2D, destination: Rect2, tile_index: int) -> void:
