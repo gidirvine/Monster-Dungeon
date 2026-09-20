@@ -61,3 +61,9 @@ Use this file as a concise handoff record when moving development between machin
 - Changed: `assets/tiles/terrain/floor_atlas_v1.png`, `assets/tiles/terrain/wall_atlas_v1.png`
 - Summary: Added matching dark blue-gray pixel-art floor and wall atlas concepts as the first terrain-art source set. They establish the visual palette and wall depth direction for the eventual import-ready Godot TileSet.
 - Next: Normalize the selected art into a strict 32×32 tile grid, then replace the code-drawn terrain with TileMap assets.
+
+## 2026-09-19 — Added import-ready 32×32 terrain tiles
+
+- Changed: `assets/tiles/terrain/floor_tiles_32_v1.png`, `assets/tiles/terrain/wall_tiles_32_v1.png`, `assets/tiles/terrain/dungeon_terrain_tileset.tres`, `assets/tiles/terrain/*.png.import`, `scripts/dungeon_level.gd`
+- Summary: Normalized the terrain references into two 128×128 four-by-four atlases with exact 32×32 cells, created a Godot TileSet resource containing both sets, and updated the procedural dungeon renderer to draw the terrain atlas art instead of the original code-drawn stone tiles. Wall variants now respond to neighboring floor cells so caps and corners form coherent dungeon boundaries.
+- Next: Refine the atlas variants and use the TileSet directly in a TileMapLayer as terrain rules expand.

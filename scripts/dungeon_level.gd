@@ -11,6 +11,8 @@ const MIN_ROOM_SIZE := Vector2i(4, 4)
 const MAX_ROOM_SIZE := Vector2i(8, 7)
 const MIN_ROOMS := 9
 const MAX_ROOMS := 14
+const FLOOR_ATLAS: Texture2D = preload("res://assets/tiles/terrain/floor_tiles_32_v1.png")
+const WALL_ATLAS: Texture2D = preload("res://assets/tiles/terrain/wall_tiles_32_v1.png")
 
 var dungeon: Array[PackedStringArray] = []
 var hero_cell := Vector2i.ZERO
@@ -222,23 +224,43 @@ func _draw() -> void:
 
 
 func _draw_floor(rect: Rect2, cell: Vector2i) -> void:
-	var alternate := (cell.x + cell.y) % 2 == 0
-	draw_rect(rect.grow(-1), Color("202a33") if alternate else Color("1c2630"))
-	draw_line(rect.position + Vector2(1, 1), rect.position + Vector2(TILE_SIZE - 2, 1), Color("34414a"), 1.0)
-	# Small, deterministic scuffs keep the floor from looking like a flat grid.
-	if (cell.x * 11 + cell.y * 7) % 5 == 0:
-		var mark := rect.position + Vector2(8 + (cell.y % 3) * 5, 20 - (cell.x % 2) * 4)
-		draw_line(mark, mark + Vector2(6, 0), Color("2f3b43"), 1.0)
+	_draw_atlas_tile(FLOOR_ATLAS, rect, (cell.x * 7 + cell.y * 11) % 16)
 
 
 func _draw_wall(rect: Rect2, cell: Vector2i) -> void:
-	draw_rect(rect, Color("111821"))
-	draw_rect(rect.grow(-2), Color("38434b"))
-	draw_rect(Rect2(rect.position + Vector2(3, 3), Vector2(TILE_SIZE - 6, 7)), Color("55606a"))
-	draw_rect(Rect2(rect.position + Vector2(3, 10), Vector2(TILE_SIZE - 6, TILE_SIZE - 13)), Color("2d3841"))
-	draw_line(rect.position + Vector2(3, 10), rect.position + Vector2(TILE_SIZE - 3, 10), Color("1a222a"), 2.0)
-	if (cell.x + cell.y) % 3 == 0:
-		draw_line(rect.position + Vector2(9, 14), rect.position + Vector2(9, 27), Color("46525b"), 1.0)
+	_draw_atlas_tile(WALL_ATLAS, rect, _wall_tile_index(cell))
+
+
+func _wall_tile_index(cell: Vector2i) -> int:
+	var floor_above := _is_walkable(cell + Vector2i.UP)
+	var floor_below := _is_walkable(cell + Vector2i.DOWN)
+	var floor_left := _is_walkable(cell + Vector2i.LEFT)
+	var floor_right := _is_walkable(cell + Vector2i.RIGHT)
+
+	# The generated atlas groups cap pieces, side pieces, corners, and solid wall fill by row.
+	if floor_below:
+		return (cell.x + cell.y) % 4
+	if floor_left and floor_above:
+		return 8
+	if floor_right and floor_above:
+		return 9
+	if floor_left:
+		return 4 + cell.y % 3
+	if floor_right:
+		return 7
+	return 15
+
+
+func _is_walkable(cell: Vector2i) -> bool:
+	if cell.x < 0 or cell.x >= map_width or cell.y < 0 or cell.y >= map_height:
+		return false
+	return _get_tile(cell) != "#"
+
+
+func _draw_atlas_tile(atlas: Texture2D, destination: Rect2, tile_index: int) -> void:
+	var atlas_cell := Vector2i(tile_index % 4, tile_index / 4)
+	var source := Rect2(Vector2(atlas_cell * TILE_SIZE), Vector2(TILE_SIZE, TILE_SIZE))
+	draw_texture_rect_region(atlas, destination, source)
 
 
 func _draw_stairs(rect: Rect2) -> void:
