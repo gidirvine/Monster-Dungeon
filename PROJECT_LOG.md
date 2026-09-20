@@ -79,3 +79,9 @@ Use this file as a concise handoff record when moving development between machin
 - Changed: `scripts/dungeon_level.gd`
 - Summary: Changed wall rendering to match the room-edge behavior in the provided dungeon reference: only wall cells immediately bordering walkable floor are drawn as masonry, with cool stone caps facing the floor. Interior rock remains black while continuing to block player movement and line of sight.
 - Next: Playtest the new perimeter-wall readability and adjust cap brightness if necessary.
+
+## 2026-09-19 — Added seamless original floor surface
+
+- Changed: `assets/tiles/terrain/floor_source_v2.png`, `assets/tiles/terrain/floor_tiles_32_v2.png`, `assets/tiles/terrain/floor_macro_32_v2.png`, `assets/tiles/terrain/dungeon_terrain_tileset.tres`, `scripts/dungeon_level.gd`
+- Summary: Added an original blue-slate floor texture and converted it into a contiguous 4×4 macro-atlas of 32×32 cells. The renderer now samples neighboring regions of this continuous surface instead of placing unrelated floor panels side by side, producing seamless joins with more detail than a single repeated tile.
+- Next: Playtest the floor at normal gameplay scale, then add optional sparse floor details such as moss or cracks as a separate overlay layer.

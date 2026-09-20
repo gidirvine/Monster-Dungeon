@@ -11,7 +11,7 @@ const MIN_ROOM_SIZE := Vector2i(4, 4)
 const MAX_ROOM_SIZE := Vector2i(8, 7)
 const MIN_ROOMS := 9
 const MAX_ROOMS := 14
-const FLOOR_ATLAS: Texture2D = preload("res://assets/tiles/terrain/floor_tiles_32_v1.png")
+const FLOOR_MACRO: Texture2D = preload("res://assets/tiles/terrain/floor_macro_32_v2.png")
 const WALL_ATLAS: Texture2D = preload("res://assets/tiles/terrain/wall_tiles_32_v2.png")
 
 var dungeon: Array[PackedStringArray] = []
@@ -227,7 +227,10 @@ func _draw() -> void:
 
 
 func _draw_floor(rect: Rect2, cell: Vector2i) -> void:
-	_draw_atlas_tile(FLOOR_ATLAS, rect, (cell.x * 7 + cell.y * 11) % 16)
+	# Neighboring cells sample contiguous pieces of one floor surface instead of unrelated tiles.
+	var macro_cell := Vector2i(cell.x % 4, cell.y % 4)
+	var source := Rect2(Vector2(macro_cell * TILE_SIZE), Vector2(TILE_SIZE, TILE_SIZE))
+	draw_texture_rect_region(FLOOR_MACRO, rect, source)
 
 
 func _draw_wall(rect: Rect2, cell: Vector2i) -> void:
