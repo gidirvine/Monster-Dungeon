@@ -55,3 +55,9 @@ Use this file as a concise handoff record when moving development between machin
 - Changed: `scenes/level_01.tscn`, `scripts/dungeon_level.gd`, `scripts/dungeon_hud.gd`
 - Summary: Floors now generate at a random size between 34–42 tiles wide and 21–27 tiles tall, with more rooms to suit the larger space. Added a smooth follow camera constrained to each floor and moved the HUD to a screen layer so it remains fixed during exploration.
 - Next: Add mobile touch controls and populate generated rooms with enemies, loot, and doors.
+
+## 2026-09-19 — Added dungeon terrain art references
+
+- Changed: `assets/tiles/terrain/floor_atlas_v1.png`, `assets/tiles/terrain/wall_atlas_v1.png`
+- Summary: Added matching dark blue-gray pixel-art floor and wall atlas concepts as the first terrain-art source set. They establish the visual palette and wall depth direction for the eventual import-ready Godot TileSet.
+- Next: Normalize the selected art into a strict 32×32 tile grid, then replace the code-drawn terrain with TileMap assets.
