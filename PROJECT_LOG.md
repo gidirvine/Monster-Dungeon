@@ -25,3 +25,9 @@ Use this file as a concise handoff record when moving development between machin
 - Changed: `project.godot`, `scenes/level_01.tscn`, `scripts/dungeon_level.gd`
 - Summary: Added an asset-free, Shattered Pixel Dungeon-inspired first floor with hand-authored rooms, stone walls, floor variation, torchlight, a hero marker, stairs, and a compact status bar. Configured the project for a pixel-art 960×540 viewport and the Compatibility renderer for desktop and mobile support.
 - Next: Add player movement and wall collision so the prototype can be explored.
+
+## 2026-09-19 — Fixed dungeon-map parser type error
+
+- Changed: `scripts/dungeon_level.gd`, `scripts/dungeon_level.gd.uid`, `project.godot`, `.gitignore`
+- Summary: Explicitly convert each dungeon-map character to a `String`, allowing Godot to compile the tile-drawing loop without an ambiguous inferred type. Kept Godot's normalized project settings and source identifier, while excluding its machine-specific editor cache from Git.
+- Next: Open the level and run it in Godot to verify the dungeon renders.

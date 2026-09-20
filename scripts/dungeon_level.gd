@@ -38,7 +38,7 @@ func _draw() -> void:
 	for y in DUNGEON.size():
 		for x in DUNGEON[y].length():
 			var cell := Vector2i(x, y)
-			var tile := DUNGEON[y][x]
+			var tile: String = str(DUNGEON[y][x])
 			var rect := Rect2(Vector2(MAP_OFFSET + cell * TILE_SIZE), Vector2(TILE_SIZE, TILE_SIZE))
 			if tile == "#":
 				_draw_wall(rect, cell)
