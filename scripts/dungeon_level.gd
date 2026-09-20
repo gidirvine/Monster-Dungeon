@@ -3,35 +3,21 @@ extends Node2D
 const TILE_SIZE := 32
 const MAP_OFFSET := Vector2i(0, 0)
 const VISION_RADIUS := 5
+const MAP_WIDTH := 30
+const MAP_HEIGHT := 17
+const MIN_ROOM_SIZE := Vector2i(4, 4)
+const MAX_ROOM_SIZE := Vector2i(7, 6)
+const MIN_ROOMS := 6
+const MAX_ROOMS := 9
 
-# # is a stone wall, . is walkable floor, > is the stairs to the next floor.
-const DUNGEON := [
-	"##############################",
-	"#............##..............#",
-	"#............##..............#",
-	"#............................#",
-	"#....######..................#",
-	"#....#....#....########......#",
-	"#....#....#....#......#......#",
-	"#....#.........#......#......#",
-	"#....######....#......#......#",
-	"#..............#..............#",
-	"#..............####.#####.....#",
-	"#....######.......#.#.........#",
-	"#....#....#.......#.#.........#",
-	"#....#....#.......#.#.........#",
-	"#.........#.......#.#......>..#",
-	"#...................#.........#",
-	"##############################",
-]
-
-const HERO_CELL := Vector2i(3, 13)
-
-var hero_cell: Vector2i = HERO_CELL
+var dungeon: Array[PackedStringArray] = []
+var hero_cell := Vector2i.ZERO
+var stairs_cell := Vector2i.ZERO
 var visible_cells := {}
 var explored_cells := {}
 
 func _ready() -> void:
+	_generate_dungeon()
 	_update_visibility()
 	queue_redraw()
 
@@ -51,15 +37,103 @@ func _unhandled_input(event: InputEvent) -> void:
 			_try_move(Vector2i.LEFT)
 		KEY_RIGHT, KEY_D:
 			_try_move(Vector2i.RIGHT)
+		KEY_R:
+			_generate_dungeon()
+			_update_visibility()
+			queue_redraw()
+
+
+func _generate_dungeon() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	dungeon.clear()
+	for y in MAP_HEIGHT:
+		var row := PackedStringArray()
+		row.resize(MAP_WIDTH)
+		for x in MAP_WIDTH:
+			row[x] = "#"
+		dungeon.append(row)
+
+	var rooms: Array[Rect2i] = []
+	var target_room_count := rng.randi_range(MIN_ROOMS, MAX_ROOMS)
+	var attempts := 0
+	while rooms.size() < target_room_count and attempts < 100:
+		attempts += 1
+		var room_size := Vector2i(
+			rng.randi_range(MIN_ROOM_SIZE.x, MAX_ROOM_SIZE.x),
+			rng.randi_range(MIN_ROOM_SIZE.y, MAX_ROOM_SIZE.y)
+		)
+		var room_position := Vector2i(
+			rng.randi_range(1, MAP_WIDTH - room_size.x - 2),
+			rng.randi_range(1, MAP_HEIGHT - room_size.y - 2)
+		)
+		var candidate := Rect2i(room_position, room_size)
+		var overlaps_existing_room := false
+		for room in rooms:
+			if room.grow(1).intersects(candidate):
+				overlaps_existing_room = true
+				break
+		if overlaps_existing_room:
+			continue
+
+		_carve_room(candidate)
+		if not rooms.is_empty():
+			_connect_rooms(_room_center(rooms.back()), _room_center(candidate), rng)
+		rooms.append(candidate)
+
+	# The first and last rooms are guaranteed to be connected by the corridors above.
+	hero_cell = _room_center(rooms.front())
+	stairs_cell = _room_center(rooms.back())
+	_set_tile(stairs_cell, ">")
+
+
+func _carve_room(room: Rect2i) -> void:
+	for y in range(room.position.y, room.end.y):
+		for x in range(room.position.x, room.end.x):
+			_set_tile(Vector2i(x, y), ".")
+
+
+func _connect_rooms(from_cell: Vector2i, to_cell: Vector2i, rng: RandomNumberGenerator) -> void:
+	# Each L-shaped corridor joins a new room to the prior room, keeping the floor coherent.
+	if rng.randi() % 2 == 0:
+		_carve_horizontal_tunnel(from_cell.x, to_cell.x, from_cell.y)
+		_carve_vertical_tunnel(from_cell.y, to_cell.y, to_cell.x)
+	else:
+		_carve_vertical_tunnel(from_cell.y, to_cell.y, from_cell.x)
+		_carve_horizontal_tunnel(from_cell.x, to_cell.x, to_cell.y)
+
+
+func _carve_horizontal_tunnel(from_x: int, to_x: int, y: int) -> void:
+	for x in range(mini(from_x, to_x), maxi(from_x, to_x) + 1):
+		_set_tile(Vector2i(x, y), ".")
+
+
+func _carve_vertical_tunnel(from_y: int, to_y: int, x: int) -> void:
+	for y in range(mini(from_y, to_y), maxi(from_y, to_y) + 1):
+		_set_tile(Vector2i(x, y), ".")
+
+
+func _room_center(room: Rect2i) -> Vector2i:
+	return room.position + room.size / 2
+
+
+func _set_tile(cell: Vector2i, tile: String) -> void:
+	var row := dungeon[cell.y]
+	row[cell.x] = tile
+	dungeon[cell.y] = row
+
+
+func _get_tile(cell: Vector2i) -> String:
+	return dungeon[cell.y][cell.x]
 
 
 func _try_move(direction: Vector2i) -> void:
 	var next_cell := hero_cell + direction
-	if next_cell.x < 0 or next_cell.x >= DUNGEON[0].length():
+	if next_cell.x < 0 or next_cell.x >= MAP_WIDTH:
 		return
-	if next_cell.y < 0 or next_cell.y >= DUNGEON.size():
+	if next_cell.y < 0 or next_cell.y >= MAP_HEIGHT:
 		return
-	if str(DUNGEON[next_cell.y][next_cell.x]) == "#":
+	if _get_tile(next_cell) == "#":
 		return
 
 	hero_cell = next_cell
@@ -69,8 +143,8 @@ func _try_move(direction: Vector2i) -> void:
 
 func _update_visibility() -> void:
 	visible_cells.clear()
-	for y in DUNGEON.size():
-		for x in DUNGEON[y].length():
+	for y in MAP_HEIGHT:
+		for x in MAP_WIDTH:
 			var cell := Vector2i(x, y)
 			if cell.distance_to(hero_cell) <= VISION_RADIUS and _has_line_of_sight(hero_cell, cell):
 				visible_cells[cell] = true
@@ -94,7 +168,7 @@ func _has_line_of_sight(from_cell: Vector2i, to_cell: Vector2i) -> bool:
 		if doubled_error <= delta_x:
 			error += delta_x
 			current.y += step_y
-		if current != to_cell and str(DUNGEON[current.y][current.x]) == "#":
+		if current != to_cell and _get_tile(current) == "#":
 			return false
 
 	return true
@@ -104,10 +178,10 @@ func _draw() -> void:
 	# A nearly-black border gives the floor the compact, dungeon-crawler frame.
 	draw_rect(Rect2(Vector2.ZERO, Vector2(960, 540)), Color("080b12"))
 
-	for y in DUNGEON.size():
-		for x in DUNGEON[y].length():
+	for y in MAP_HEIGHT:
+		for x in MAP_WIDTH:
 			var cell := Vector2i(x, y)
-			var tile: String = str(DUNGEON[y][x])
+			var tile := _get_tile(cell)
 			var rect := Rect2(Vector2(MAP_OFFSET + cell * TILE_SIZE), Vector2(TILE_SIZE, TILE_SIZE))
 			if not explored_cells.has(cell):
 				draw_rect(rect, Color("080b12"))
@@ -167,5 +241,5 @@ func _draw_hud() -> void:
 	draw_rect(Rect2(0, 0, 960, 36), Color("0d1219"))
 	draw_line(Vector2(0, 35), Vector2(960, 35), Color("53616a"), 1.0)
 	draw_string(font, Vector2(18, 24), "THE FORSAKEN DEPTHS  •  FLOOR 1", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("e2d8b5"))
-	draw_string(font, Vector2(404, 24), "VISION: %s  •  WASD / ARROWS: MOVE" % VISION_RADIUS, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("8fa1a5"))
+	draw_string(font, Vector2(386, 24), "VISION: %s  •  WASD / ARROWS: MOVE  •  R: NEW FLOOR" % VISION_RADIUS, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("8fa1a5"))
 	draw_string(font, Vector2(838, 24), "HP 20 / 20", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("dc6960"))

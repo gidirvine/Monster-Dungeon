@@ -43,3 +43,9 @@ Use this file as a concise handoff record when moving development between machin
 - Changed: `scripts/dungeon_level.gd`
 - Summary: Replaced static torches and full-map illumination with a five-tile vision radius centered on the hero. Walls block line of sight; cells outside the current view stay concealed until discovered, then remain visible as dimly remembered terrain.
 - Next: Tune the vision radius and add mobile touch controls after playtesting the exploration feel.
+
+## 2026-09-19 — Added procedural room-and-corridor generation
+
+- Changed: `scripts/dungeon_level.gd`
+- Summary: Replaced the fixed first-floor layout with a generator that creates six to nine non-overlapping rooms and joins them with L-shaped corridors. Each floor has a connected start room and reachable stairs; press `R` during play to generate another layout.
+- Next: Add mobile touch controls and populate generated rooms with enemies, loot, and doors.
