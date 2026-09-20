@@ -27,7 +27,39 @@ const DUNGEON := [
 const TORCHES := [Vector2i(3, 3), Vector2i(13, 3), Vector2i(21, 5), Vector2i(6, 11), Vector2i(24, 13)]
 const HERO_CELL := Vector2i(3, 13)
 
+var hero_cell: Vector2i = HERO_CELL
+
 func _ready() -> void:
+	queue_redraw()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not event is InputEventKey:
+		return
+	if not event.pressed or event.echo:
+		return
+
+	match event.keycode:
+		KEY_UP, KEY_W:
+			_try_move(Vector2i.UP)
+		KEY_DOWN, KEY_S:
+			_try_move(Vector2i.DOWN)
+		KEY_LEFT, KEY_A:
+			_try_move(Vector2i.LEFT)
+		KEY_RIGHT, KEY_D:
+			_try_move(Vector2i.RIGHT)
+
+
+func _try_move(direction: Vector2i) -> void:
+	var next_cell := hero_cell + direction
+	if next_cell.x < 0 or next_cell.x >= DUNGEON[0].length():
+		return
+	if next_cell.y < 0 or next_cell.y >= DUNGEON.size():
+		return
+	if str(DUNGEON[next_cell.y][next_cell.x]) == "#":
+		return
+
+	hero_cell = next_cell
 	queue_redraw()
 
 
@@ -50,7 +82,7 @@ func _draw() -> void:
 	for torch_cell in TORCHES:
 		_draw_torch(torch_cell)
 
-	_draw_hero(HERO_CELL)
+	_draw_hero(hero_cell)
 	_draw_hud()
 
 
@@ -105,4 +137,5 @@ func _draw_hud() -> void:
 	draw_rect(Rect2(0, 0, 960, 36), Color("0d1219"))
 	draw_line(Vector2(0, 35), Vector2(960, 35), Color("53616a"), 1.0)
 	draw_string(font, Vector2(18, 24), "THE FORSAKEN DEPTHS  •  FLOOR 1", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("e2d8b5"))
+	draw_string(font, Vector2(420, 24), "WASD / ARROWS: MOVE", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("8fa1a5"))
 	draw_string(font, Vector2(838, 24), "HP 20 / 20", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("dc6960"))

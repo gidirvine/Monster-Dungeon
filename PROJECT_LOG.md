@@ -31,3 +31,9 @@ Use this file as a concise handoff record when moving development between machin
 - Changed: `scripts/dungeon_level.gd`, `scripts/dungeon_level.gd.uid`, `project.godot`, `.gitignore`
 - Summary: Explicitly convert each dungeon-map character to a `String`, allowing Godot to compile the tile-drawing loop without an ambiguous inferred type. Kept Godot's normalized project settings and source identifier, while excluding its machine-specific editor cache from Git.
 - Next: Open the level and run it in Godot to verify the dungeon renders.
+
+## 2026-09-19 — Added grid-based player movement
+
+- Changed: `scripts/dungeon_level.gd`
+- Summary: The hero now moves one dungeon tile at a time with either the arrow keys or WASD. Movement is constrained by the hand-authored map, preventing the player from walking through stone walls or outside the level.
+- Next: Add mobile touch controls and a camera once the movement feel is confirmed.
