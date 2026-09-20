@@ -49,3 +49,9 @@ Use this file as a concise handoff record when moving development between machin
 - Changed: `scripts/dungeon_level.gd`
 - Summary: Replaced the fixed first-floor layout with a generator that creates six to nine non-overlapping rooms and joins them with L-shaped corridors. Each floor has a connected start room and reachable stairs; press `R` during play to generate another layout.
 - Next: Add mobile touch controls and populate generated rooms with enemies, loot, and doors.
+
+## 2026-09-19 — Added variable-size dungeon floors and camera
+
+- Changed: `scenes/level_01.tscn`, `scripts/dungeon_level.gd`, `scripts/dungeon_hud.gd`
+- Summary: Floors now generate at a random size between 34–42 tiles wide and 21–27 tiles tall, with more rooms to suit the larger space. Added a smooth follow camera constrained to each floor and moved the HUD to a screen layer so it remains fixed during exploration.
+- Next: Add mobile touch controls and populate generated rooms with enemies, loot, and doors.
